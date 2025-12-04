@@ -22,6 +22,7 @@ export interface Guest {
   friday: FridayStatus;
   ageGroup: AgeGroup;
   status: ConfirmationStatus;
+  arrived?: boolean;
 }
 
 export interface GuestStats {

@@ -6,6 +6,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, 
 
 interface DashboardProps {
   guests: Guest[];
+  title?: string;
 }
 
 const COLORS = [
@@ -17,7 +18,7 @@ const COLORS = [
   "hsl(180, 60%, 45%)",
 ];
 
-export function Dashboard({ guests }: DashboardProps) {
+export function Dashboard({ guests, title = "Isola 70" }: DashboardProps) {
   const stats: GuestStats = useMemo(() => {
     const confirmed = guests.filter((g) => g.status === "Confirmado").length;
     const notAttending = guests.filter((g) => g.status === "Não comparecerá").length;
@@ -71,7 +72,7 @@ export function Dashboard({ guests }: DashboardProps) {
     <div className="space-y-6 pb-20">
       <header className="space-y-1">
         <h1 className="text-2xl font-display font-bold gradient-gold-text">
-          Isola 70
+          {title}
         </h1>
         <p className="text-sm text-muted-foreground">
           Controle de convidados da festa
@@ -114,7 +115,7 @@ export function Dashboard({ guests }: DashboardProps) {
           Por Hospedagem
         </h2>
         <div className="bg-card rounded-xl border border-border p-4">
-          <div className="h-48">
+          <div className="h-32 md:h-48">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={accommodationData}
@@ -154,8 +155,8 @@ export function Dashboard({ guests }: DashboardProps) {
           Por Grupo
         </h2>
         <div className="bg-card rounded-xl border border-border p-4">
-          <div className="flex items-center justify-center gap-8">
-            <div className="h-32 w-32">
+          <div className="flex items-center justify-center gap-4 md:gap-8">
+            <div className="h-24 w-24 md:h-32 md:w-32">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie

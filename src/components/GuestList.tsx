@@ -15,6 +15,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 
 interface GuestListProps {
   guests: Guest[];
+  onToggleArrived?: (id: string, arrived: boolean) => void;
 }
 
 const accommodations: Accommodation[] = [
@@ -29,11 +30,12 @@ const accommodations: Accommodation[] = [
 const statuses: ConfirmationStatus[] = ["Confirmado", "Pendente", "Não comparecerá"];
 const groups: GuestGroup[] = ["Família", "Amigos"];
 
-export function GuestList({ guests }: GuestListProps) {
+export function GuestList({ guests, onToggleArrived }: GuestListProps) {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [accommodationFilter, setAccommodationFilter] = useState<string>("all");
   const [groupFilter, setGroupFilter] = useState<string>("all");
+  const [arrivedFilter, setArrivedFilter] = useState<string>("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const filteredGuests = useMemo(() => {
@@ -46,12 +48,13 @@ export function GuestList({ guests }: GuestListProps) {
       const matchesAccommodation =
         accommodationFilter === "all" || guest.accommodation === accommodationFilter;
       const matchesGroup = groupFilter === "all" || guest.group === groupFilter;
-
-      return matchesSearch && matchesStatus && matchesAccommodation && matchesGroup;
+      const matchesArrived =
+        arrivedFilter === "all" || (arrivedFilter === "yes" ? !!guest.arrived : !guest.arrived);
+      return matchesSearch && matchesStatus && matchesAccommodation && matchesGroup && matchesArrived;
     });
-  }, [guests, search, statusFilter, accommodationFilter, groupFilter]);
+  }, [guests, search, statusFilter, accommodationFilter, groupFilter, arrivedFilter]);
 
-  const activeFilters = [statusFilter, accommodationFilter, groupFilter].filter(
+  const activeFilters = [statusFilter, accommodationFilter, groupFilter, arrivedFilter].filter(
     (f) => f !== "all"
   ).length;
 
@@ -59,6 +62,7 @@ export function GuestList({ guests }: GuestListProps) {
     setStatusFilter("all");
     setAccommodationFilter("all");
     setGroupFilter("all");
+    setArrivedFilter("all");
   };
 
   return (
@@ -84,7 +88,7 @@ export function GuestList({ guests }: GuestListProps) {
               )}
             </Button>
           </SheetTrigger>
-          <SheetContent side="bottom" className="h-auto max-h-[80vh]">
+        <SheetContent side="bottom" className="h-auto max-h-[80vh]">
             <SheetHeader>
               <SheetTitle className="font-display">Filtros</SheetTitle>
             </SheetHeader>
@@ -140,6 +144,20 @@ export function GuestList({ guests }: GuestListProps) {
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Chegada</label>
+                <Select value={arrivedFilter} onValueChange={setArrivedFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos</SelectItem>
+                    <SelectItem value="yes">Chegou</SelectItem>
+                    <SelectItem value="no">Não chegou</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               {activeFilters > 0 && (
                 <Button
                   variant="outline"
@@ -161,7 +179,7 @@ export function GuestList({ guests }: GuestListProps) {
 
       <div className="grid gap-3 pb-20">
         {filteredGuests.map((guest) => (
-          <GuestCard key={guest.id} guest={guest} />
+          <GuestCard key={guest.id} guest={guest} onArrivedToggle={onToggleArrived} />
         ))}
         {filteredGuests.length === 0 && (
           <div className="text-center py-12 text-muted-foreground">
