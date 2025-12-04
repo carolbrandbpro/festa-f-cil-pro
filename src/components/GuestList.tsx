@@ -3,7 +3,7 @@ import { Guest, ConfirmationStatus, Accommodation, GuestGroup } from "@/types/gu
 import { GuestCard } from "./GuestCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, X, Printer } from "lucide-react";
+import { Search, Filter, X, Printer, Download } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -150,6 +150,27 @@ export function GuestList({ guests, onToggleArrived }: GuestListProps) {
     }
   };
 
+  const handleExportCSV = () => {
+    const headers = ["Nome", "Convite", "Grupo", "Hospedagem", "Status", "Chegada"];
+    const escape = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
+    const lines = filteredGuests.map((g) =>
+      [g.name, g.inviteName, g.group, g.accommodation || "", g.status, g.arrived ? "Sim" : "Não"]
+        .map(escape)
+        .join(";")
+    );
+    const csv = [headers.join(";"), ...lines].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `convidados-${date}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -165,6 +186,10 @@ export function GuestList({ guests, onToggleArrived }: GuestListProps) {
         <Button onClick={handlePrint} variant="outline" className="flex gap-2">
           <Printer className="h-4 w-4" />
           Imprimir
+        </Button>
+        <Button onClick={handleExportCSV} variant="outline" className="flex gap-2">
+          <Download className="h-4 w-4" />
+          Exportar CSV
         </Button>
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
           <SheetTrigger asChild>
