@@ -79,6 +79,11 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-muted">
       <div className="w-full max-w-sm rounded-xl bg-background p-6 shadow">
         <h1 className="text-xl font-semibold mb-4">Entrar</h1>
+        {!supabase && (
+          <div className="mb-3 rounded-md border bg-muted px-3 py-2 text-sm text-muted-foreground">
+            Modo offline — autenticação indisponível. O sistema está liberado.
+          </div>
+        )}
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="email">Usuário</Label>
