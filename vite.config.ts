@@ -9,6 +9,13 @@ export default defineConfig(({ mode }) => ({
     host: true,
     port: Number(process.env.PORT) || 8080,
     allowedHosts: ["isola70.onrender.com"],
+    proxy: {
+      "/api": {
+        target: "http://localhost:8787",
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   preview: {
     host: true,

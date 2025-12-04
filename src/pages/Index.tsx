@@ -8,6 +8,7 @@ import { AccommodationView } from "@/components/AccommodationView";
 import { SettingsView } from "@/components/SettingsView";
 import { BottomNav } from "@/components/BottomNav";
 import { initialGuests } from "@/data/guests";
+import { getArrivals, setArrived } from "@/lib/api";
 
 type TabType = "dashboard" | "guests" | "accommodations" | "settings";
 
@@ -76,6 +77,15 @@ const Index = () => {
     };
   }, [isMobile]);
 
+  useEffect(() => {
+    (async () => {
+      const map = await getArrivals();
+      if (map && Object.keys(map).length) {
+        setGuests((prev) => prev.map((g) => ({ ...g, arrived: !!map[g.id] })));
+      }
+    })();
+  }, []);
+
   const scrollToTop = () => {
     if (isMobile) {
       contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
@@ -99,9 +109,10 @@ const Index = () => {
         ) : activeTab === "guests" ? (
           <GuestList
             guests={guests}
-            onToggleArrived={(id, arrived) =>
-              setGuests((prev) => prev.map((g) => (g.id === id ? { ...g, arrived } : g)))
-            }
+            onToggleArrived={async (id, arrived) => {
+              setGuests((prev) => prev.map((g) => (g.id === id ? { ...g, arrived } : g)));
+              await setArrived(id, arrived);
+            }}
           />
         ) : activeTab === "accommodations" ? (
           <AccommodationView guests={guests} />
