@@ -5,8 +5,8 @@ import pkg from "pg";
 const { Pool } = pkg;
 const app = express();
 app.use(express.json());
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "https://festa-f-cil-pro.onrender.com";
-const DEV_ORIGINS = ["http://localhost:8080", "http://127.0.0.1:8080"];
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "https://carolbrandbpro.github.io";
+const DEV_ORIGINS = ["http://localhost:8080", "http://127.0.0.1:8080", "http://localhost:8081"];
 const origins = [ALLOWED_ORIGIN, ...DEV_ORIGINS].filter(Boolean);
 app.use(cors({ origin: origins }));
 
@@ -16,6 +16,7 @@ const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
 let dbReady = false;
 let pool = null;
 let memory = new Map();
+let memoryStore = new Map();
 
 async function init() {
   if (!DATABASE_URL) {
@@ -25,6 +26,9 @@ async function init() {
   pool = new Pool({ connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } });
   await pool.query(
     "CREATE TABLE IF NOT EXISTS arrivals (id TEXT PRIMARY KEY, arrived BOOLEAN NOT NULL DEFAULT false)"
+  );
+  await pool.query(
+    "CREATE TABLE IF NOT EXISTS store (key TEXT PRIMARY KEY, value JSONB NOT NULL)"
   );
   dbReady = true;
 }
@@ -64,6 +68,41 @@ app.put("/api/guests/:id/arrived", async (req, res) => {
       return res.json({ ok: true });
     }
     memory.set(id, arrived);
+    return res.json({ ok: true });
+  } catch (e) {
+    return res.status(500).json({ error: "failed", message: String(e?.message || e) });
+  }
+});
+
+app.get("/api/store/:key", async (req, res) => {
+  const { key } = req.params;
+  if (!dbReady) await init();
+  try {
+    if (pool) {
+      const r = await pool.query("SELECT value FROM store WHERE key = $1", [key]);
+      if (r.rows.length === 0) return res.status(404).json({ error: "not_found" });
+      return res.json(r.rows[0].value);
+    }
+    if (!memoryStore.has(key)) return res.status(404).json({ error: "not_found" });
+    return res.json(memoryStore.get(key));
+  } catch (e) {
+    return res.status(500).json({ error: "failed", message: String(e?.message || e) });
+  }
+});
+
+app.put("/api/store/:key", async (req, res) => {
+  const { key } = req.params;
+  const { value } = req.body || {};
+  if (!dbReady) await init();
+  try {
+    if (pool) {
+      await pool.query(
+        "INSERT INTO store (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+        [key, value]
+      );
+      return res.json({ ok: true });
+    }
+    memoryStore.set(key, value);
     return res.json({ ok: true });
   } catch (e) {
     return res.status(500).json({ error: "failed", message: String(e?.message || e) });

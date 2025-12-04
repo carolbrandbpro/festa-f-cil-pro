@@ -8,7 +8,7 @@ import { AccommodationView } from "@/components/AccommodationView";
 import { SettingsView } from "@/components/SettingsView";
 import { BottomNav } from "@/components/BottomNav";
 import { initialGuests } from "@/data/guests";
-import { getArrivals, setArrived } from "@/lib/api";
+import { getArrivals, setArrived, getStore, setStore } from "@/lib/api";
 
 type TabType = "dashboard" | "guests" | "accommodations" | "settings";
 
@@ -57,6 +57,7 @@ const Index = () => {
     } catch {
       void 0;
     }
+    void setStore("guests", guests);
   }, [guests]);
 
   useEffect(() => {
@@ -65,6 +66,7 @@ const Index = () => {
     } catch {
       void 0;
     }
+    void setStore("title", eventTitle);
   }, [eventTitle]);
 
   useEffect(() => {
@@ -83,6 +85,16 @@ const Index = () => {
 
   useEffect(() => {
     (async () => {
+      try {
+        const remoteGuests = await getStore<typeof guests>("guests");
+        if (remoteGuests && Array.isArray(remoteGuests)) {
+          setGuests(remoteGuests as typeof guests);
+        }
+        const remoteTitle = await getStore<string>("title");
+        if (remoteTitle && typeof remoteTitle === "string") {
+          setEventTitle(remoteTitle);
+        }
+      } catch { void 0; }
       const map = await getArrivals();
       if (map && Object.keys(map).length) {
         setGuests((prev) => prev.map((g) => ({ ...g, arrived: !!map[g.id] })));

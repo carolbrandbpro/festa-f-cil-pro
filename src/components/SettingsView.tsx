@@ -1,12 +1,15 @@
 import { PartyPopper, Info, Download, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Guest, AgeGroup, GuestGroup, ConfirmationStatus, FridayStatus, GuestStats } from "@/types/guest";
 import * as XLSX from "xlsx";
 import ExcelJS from "exceljs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { setStore } from "@/lib/api";
+import { supabase } from "@/lib/supabase";
+import { setStore } from "@/lib/api";
 
 interface SettingsViewProps {
   guests: Guest[];
@@ -20,6 +23,21 @@ export function SettingsView({ guests, onImport, eventTitle, onTitleChange }: Se
   const { toast } = useToast();
   const [reportOpen, setReportOpen] = useState(false);
   const [report, setReport] = useState<{ added: Guest[]; ignored: Guest[] } | null>(null);
+  const [logged, setLogged] = useState(false);
+
+  useEffect(() => {
+    let unsub: (() => void) | null = null;
+    (async () => {
+      if (!supabase) return;
+      const { data } = await supabase.auth.getSession();
+      setLogged(!!data.session);
+      const { data: sub } = supabase.auth.onAuthStateChange((_evt, session) => {
+        setLogged(!!session);
+      });
+      unsub = () => sub.subscription.unsubscribe();
+    })();
+    return () => { if (unsub) unsub(); };
+  }, []);
 
   const exportXLSX = async () => {
     const header = [
@@ -282,6 +300,10 @@ export function SettingsView({ guests, onImport, eventTitle, onTitleChange }: Se
   };
 
   const triggerImport = () => {
+    if (!logged) {
+      toast({ title: "Faça login", description: "Entre para importar dados", variant: "destructive" });
+      return;
+    }
     fileInputRef.current?.click();
   };
 
@@ -307,6 +329,8 @@ export function SettingsView({ guests, onImport, eventTitle, onTitleChange }: Se
       const { merged, added, ignored } = mergeUniqueWithReport(guests, imported);
       onImport(merged);
       onTitleChange(baseName);
+      await setStore("guests", merged);
+      await setStore("title", baseName);
       setReport({ added, ignored });
       setReportOpen(true);
       toast({ title: "Importação concluída", description: `${added.length} novos convidados adicionados` });
@@ -574,10 +598,23 @@ export function SettingsView({ guests, onImport, eventTitle, onTitleChange }: Se
         </Button>
 
         <input ref={fileInputRef} type="file" accept="application/json,.json,text/csv,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx" className="hidden" onChange={handleFileChange} />
-        <Button variant="outline" className="w-full justify-start" onClick={triggerImport}>
+        <Button variant="outline" className="w-full justify-start" onClick={triggerImport} disabled={!logged}>
           <Upload className="h-4 w-4 mr-3" />
           Importar dados
         </Button>
+
+        <div className="mt-2 text-xs text-muted-foreground px-1">
+          Status: {logged ? "logado" : "não logado"}
+        </div>
+        {logged ? (
+          <Button variant="secondary" className="w-full mt-2" onClick={async () => { await supabase?.auth.signOut(); toast({ title: "Sessão encerrada" }); } }>
+            Sair
+          </Button>
+        ) : (
+          <a href="/login" className="w-full mt-2 inline-flex items-center justify-center rounded-md border px-3 py-2 text-sm">
+            Entrar
+          </a>
+        )}
       </div>
 
       <div className="bg-muted/50 rounded-xl p-4 flex gap-3">
