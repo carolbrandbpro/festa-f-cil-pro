@@ -1,12 +1,38 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import { Dashboard } from "@/components/Dashboard";
+import { GuestList } from "@/components/GuestList";
+import { AccommodationView } from "@/components/AccommodationView";
+import { SettingsView } from "@/components/SettingsView";
+import { BottomNav } from "@/components/BottomNav";
+import { initialGuests } from "@/data/guests";
+
+type TabType = "dashboard" | "guests" | "accommodations" | "settings";
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState<TabType>("dashboard");
+  const [guests] = useState(initialGuests);
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "dashboard":
+        return <Dashboard guests={guests} />;
+      case "guests":
+        return <GuestList guests={guests} />;
+      case "accommodations":
+        return <AccommodationView guests={guests} />;
+      case "settings":
+        return <SettingsView />;
+      default:
+        return <Dashboard guests={guests} />;
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <main className="container max-w-lg mx-auto px-4 py-6">
+        {renderContent()}
+      </main>
+      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
