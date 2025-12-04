@@ -16,6 +16,11 @@ const Login = () => {
   const [showPw, setShowPw] = useState(false);
   const [resetInfo, setResetInfo] = useState<null | "sent" | "error">(null);
 
+  if (!supabase) {
+    navigate("/");
+    return null;
+  }
+
   const resolveEmail = async (input: string): Promise<string | null> => {
     const val = String(input || "").trim();
     if (val.includes("@")) return val;
