@@ -553,7 +553,7 @@ export function SettingsView({ guests, onImport, eventTitle, onTitleChange }: Se
           <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
               <p className="text-muted-foreground">Local</p>
-              <p className="font-medium">Paraty, RJ</p>
+              <p className="font-medium">Villa Bom Jardim, Ilha de Paraty</p>
             </div>
             <div>
               <p className="text-muted-foreground">Data</p>

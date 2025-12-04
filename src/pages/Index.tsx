@@ -13,8 +13,20 @@ type TabType = "dashboard" | "guests" | "accommodations" | "settings";
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>("dashboard");
-  const [guests, setGuests] = useState(initialGuests);
-  const [eventTitle, setEventTitle] = useState<string>("Isola 70");
+  const [guests, setGuests] = useState(() => {
+    try {
+      const raw = localStorage.getItem("isola.guests");
+      if (!raw) return initialGuests;
+      const data = JSON.parse(raw);
+      return Array.isArray(data) ? data : initialGuests;
+    } catch {
+      return initialGuests;
+    }
+  });
+  const [eventTitle, setEventTitle] = useState<string>(() => {
+    const t = localStorage.getItem("isola.title");
+    return t || "Isola 70";
+  });
   const isMobile = useIsMobile();
   const contentRef = useRef<HTMLDivElement>(null);
   const [showTop, setShowTop] = useState(false);
@@ -36,6 +48,18 @@ const Index = () => {
 
   useEffect(() => {
     document.title = `${eventTitle} - Controle de Convidados`;
+  }, [eventTitle]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("isola.guests", JSON.stringify(guests));
+    } catch {}
+  }, [guests]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("isola.title", eventTitle);
+    } catch {}
   }, [eventTitle]);
 
   useEffect(() => {
