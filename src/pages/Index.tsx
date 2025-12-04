@@ -108,6 +108,14 @@ const Index = () => {
         )}
         ref={contentRef}
       >
+        {activeTab === "guests" && (
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-display font-bold">{eventTitle}</h1>
+              <p className="text-sm text-muted-foreground">Controle de convidados da festa</p>
+            </div>
+          </div>
+        )}
         {activeTab === "dashboard" ? (
           <Dashboard guests={guests} title={eventTitle} />
         ) : activeTab === "guests" ? (

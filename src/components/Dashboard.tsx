@@ -10,12 +10,12 @@ interface DashboardProps {
 }
 
 const COLORS = [
-  "hsl(38, 70%, 50%)",
-  "hsl(220, 70%, 50%)",
-  "hsl(142, 71%, 45%)",
-  "hsl(280, 65%, 60%)",
-  "hsl(0, 72%, 51%)",
-  "hsl(180, 60%, 45%)",
+  "hsl(195 45% 45%)", // teal
+  "hsl(210 60% 40%)", // oceano
+  "hsl(25 65% 46%)",  // coral
+  "hsl(45 35% 55%)",  // areia
+  "hsl(210 25% 18%)", // azul escuro
+  "hsl(180 50% 40%)", // água
 ];
 
 export function Dashboard({ guests, title = "Isola 70" }: DashboardProps) {
@@ -70,14 +70,6 @@ export function Dashboard({ guests, title = "Isola 70" }: DashboardProps) {
 
   return (
     <div className="space-y-6 pb-20">
-      <header className="space-y-1">
-        <h1 className="text-2xl font-display font-bold gradient-gold-text">
-          {title}
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Controle de convidados da festa
-        </p>
-      </header>
 
       <div className="grid grid-cols-2 gap-3">
         <StatsCard
