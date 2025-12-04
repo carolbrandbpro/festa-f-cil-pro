@@ -3,7 +3,7 @@ import { Guest, ConfirmationStatus, Accommodation, GuestGroup } from "@/types/gu
 import { GuestCard } from "./GuestCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Printer } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -65,6 +65,69 @@ export function GuestList({ guests, onToggleArrived }: GuestListProps) {
     setArrivedFilter("all");
   };
 
+  const handlePrint = () => {
+    const filters: string[] = [];
+    if (statusFilter !== "all") filters.push(`Status: ${statusFilter}`);
+    if (accommodationFilter !== "all") filters.push(`Hospedagem: ${accommodationFilter}`);
+    if (groupFilter !== "all") filters.push(`Grupo: ${groupFilter}`);
+    if (arrivedFilter !== "all") filters.push(`Chegada: ${arrivedFilter === "yes" ? "Chegou" : "Não chegou"}`);
+
+    const rows = filteredGuests
+      .map(
+        (g) =>
+          `<tr>
+            <td>${g.name}</td>
+            <td>${g.inviteName}</td>
+            <td>${g.group}</td>
+            <td>${g.accommodation || "-"}</td>
+            <td>${g.status}</td>
+            <td>${g.arrived ? "Sim" : "Não"}</td>
+          </tr>`
+      )
+      .join("");
+
+    const html = `<!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Convidados</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Ubuntu, Cantarell, 'Helvetica Neue', Arial, 'Noto Sans', 'Liberation Sans', sans-serif; padding: 24px; color: #111; }
+          h1 { margin: 0 0 8px; font-size: 20px; }
+          p { margin: 0 0 16px; color: #555; }
+          table { width: 100%; border-collapse: collapse; }
+          th, td { border: 1px solid #ddd; padding: 8px; font-size: 12px; }
+          th { background: #f7f7f7; text-align: left; }
+          @media print { @page { margin: 12mm; } }
+        </style>
+      </head>
+      <body>
+        <h1>Convidados (${filteredGuests.length})</h1>
+        <p>${filters.length ? `Filtros: ${filters.join("; ")}` : "Sem filtros"}</p>
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Convite</th>
+              <th>Grupo</th>
+              <th>Hospedagem</th>
+              <th>Status</th>
+              <th>Chegada</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <script>window.print(); setTimeout(() => window.close(), 300);</script>
+      </body>
+    </html>`;
+
+    const w = window.open("", "_blank", "noopener,noreferrer");
+    if (!w) return;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -77,6 +140,10 @@ export function GuestList({ guests, onToggleArrived }: GuestListProps) {
             className="pl-9"
           />
         </div>
+        <Button onClick={handlePrint} variant="outline" className="hidden sm:flex gap-2">
+          <Printer className="h-4 w-4" />
+          Imprimir
+        </Button>
         <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
           <SheetTrigger asChild>
             <Button variant="outline" size="icon" className="relative">
