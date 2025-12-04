@@ -8,7 +8,10 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: true,
     port: Number(process.env.PORT) || 8080,
-    allowedHosts: ["isola70.onrender.com"],
+    allowedHosts: (process.env.ALLOWED_HOSTS || "isola70.onrender.com")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
     proxy: {
       "/api": {
         target: "http://localhost:8787",
@@ -20,7 +23,10 @@ export default defineConfig(({ mode }) => ({
   preview: {
     host: true,
     port: Number(process.env.PORT) || 8080,
-    allowedHosts: ["isola70.onrender.com"],
+    allowedHosts: (process.env.ALLOWED_HOSTS || "isola70.onrender.com")
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean),
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {

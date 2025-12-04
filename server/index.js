@@ -5,7 +5,10 @@ import pkg from "pg";
 const { Pool } = pkg;
 const app = express();
 app.use(express.json());
-app.use(cors());
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || "";
+const DEV_ORIGINS = ["http://localhost:8080", "http://127.0.0.1:8080"];
+const origins = [ALLOWED_ORIGIN, ...DEV_ORIGINS].filter(Boolean);
+app.use(cors({ origin: origins }));
 
 const PORT = process.env.PORT ? Number(process.env.PORT) : 8787;
 const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || "";
